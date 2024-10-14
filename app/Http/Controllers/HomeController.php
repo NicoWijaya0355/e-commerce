@@ -42,6 +42,7 @@ class HomeController extends Controller
         $user= Auth::user();
         $userid = $user->id;
         $count = Cart ::where('user_id',$userid)->count();
+        
 
         return view('home.index',compact('product','count'));
     }
@@ -60,6 +61,23 @@ class HomeController extends Controller
     }
 
     public function add_cart($id){
+        
+         
+        $user= Auth::user();
+        $userid = $user->id;
+           
+        $check = Cart ::where('user_id',$userid)
+                    ->where('product_id',$id)->count();
+        
+        $count = Cart ::where('user_id',$userid)->count();
+        $find=Product::find($id);
+       
+        if($check >= $find->quantity){
+            $product=Product::all();
+            toastr()->timeOut(10000)->closeButton()->error('Cannot Add to Cart Over Stock');
+            return redirect()->back()->with(compact('product','count'));
+        }else{
+        
         $product_id=$id;
 
         $user = Auth::user();
@@ -72,8 +90,8 @@ class HomeController extends Controller
 
         $data->save();
         toastr()->timeOut(10000)->closeButton()->success('Product Add to Cart Successfully');
-        return redirect()->back();
-
+        return redirect()->back()->with(compact('check'));
+        }
     }
 
     public function mycart(){
@@ -81,7 +99,21 @@ class HomeController extends Controller
             $user= Auth::user();
             $userid = $user->id;
             $count = Cart ::where('user_id',$userid)->count();
-            $cart =Cart ::where('user_id',$userid)->get();
+            $cart =Cart::where('user_id',$userid)->get();
+            $product= Product::all();
+        }
+        foreach($cart as $data){
+            foreach($product as $products){
+                if($products->quantity == 0){
+                    $data->delete();
+                    $cart =Cart::where('user_id',$userid)->get();
+                }
+
+            }
+
+            
+
+            
         }
         return view('home.mycart',compact('count','cart'));
     }
@@ -114,7 +146,9 @@ class HomeController extends Controller
         $name= $request->name;
         $address=$request->address;
         $phone=$request->phone;
+       
         $userid= Auth::user()->id;
+        
         $cart=Cart::where('user_id',$userid)->get();
 
         foreach($cart as $carts){
@@ -127,7 +161,10 @@ class HomeController extends Controller
             $order->phone = $phone;
             $order->user_id=$userid;
             $order->product_id=$carts->product_id;
-
+          
+            $product=Product::find($carts->product_id);
+            $product->quantity=$product->quantity-1;
+            $product->save();
             $order->save();
 
             
@@ -137,6 +174,20 @@ class HomeController extends Controller
         foreach($cart_remove as $remove){
             $data= Cart::find($remove->id);
             $data->delete();
+        }
+
+        $cartCheck=Cart::all();
+        $productCheck=Product::all();
+        foreach($cartCheck as $data){
+          foreach($productCheck as $products){
+
+            if($products->quantity==0){
+                $remove=Cart::where('product_id',$products->id);
+                $remove->delete();
+            }
+
+          }
+                     
         }
 
         toastr()->timeOut(10000)->closeButton()->success('Product Ordered Successfully');

@@ -23,3 +23,6 @@
   <link href="{{asset('css/style.css')}}" rel="stylesheet" />
   <!-- responsive style -->
   <link href="{{asset('css/responsive.css')}}" rel="stylesheet" />
+
+  <!-- Include Toastr CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">

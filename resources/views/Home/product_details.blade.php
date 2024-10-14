@@ -1,116 +1,60 @@
-<!DOCTYPE html>
-<html>
+<header class="header_section">
+  <nav class="navbar navbar-expand-lg custom_nav-container">
+    <a class="navbar-brand" href="index.html">
+      <span>E-Commerce</span>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class=""></span>
+    </button>
 
-<head>
-  @include ('home.css')
-  <style type="text/css">
-    .div_center{
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding:30px;
-    }
-
-    .detail-box{
-        padding:15px;
-    }
-  </style>
-</head>
-
-<body>
-  <div class="hero_area">
-    <!-- header section strats -->
-    @include ('home.header')
-    <!-- end header section -->
-
-  </div>
-  <!-- end hero area -->
-
-  <!-- product details start -->
-
-  <section class="shop_section layout_padding">
-    <div class="container">
-      <div class="heading_container heading_center">
-        <h2>
-          Latest Products
-        </h2>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav">
+        <li class="nav-item {{ request()->is('/') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ url('/') }}">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item {{ request()->is('shop') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ url('shop') }}">Shop</a>
+        </li>
+        <li class="nav-item {{ request()->is('why') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ url('why') }}">Why Us</a>
+        </li>
+        <li class="nav-item {{ request()->is('testimonial') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ url('testimonial') }}">Testimonial</a>
+        </li>
+        <li class="nav-item {{ request()->is('contact') ? 'active' : '' }}">
+          <a class="nav-link" href="{{ url('contact') }}">Contact Us</a>
+        </li>
+      </ul>
+      <div class="user_option">
+        @if (Route::has('login'))
+          @auth
+            <div class="nav-item">
+              <a href="{{ url('myorders') }}">My Order</a>
+              <a href="{{ url('mycart') }}">
+                <i class="fa fa-shopping-bag" aria-hidden="true"></i>
+                [{{$count}}]
+              </a>
+              <form style="display:inline;" method="POST" action="{{ route('logout') }}">
+                @csrf
+                <input class="btn btn-success" type="submit" value="Logout">
+              </form>
+            </div>
+          @else
+            <div class="nav-item {{ request()->is('login') ? 'active' : '' }}">
+              <a href="{{ url('/login') }}">
+                <i class="fa fa-user" aria-hidden="true"></i>
+                <span>Login</span>
+              </a>
+            </div>
+            <div class="nav-item {{ request()->is('register') ? 'active' : '' }}">
+              <a href="{{ url('/register') }}">
+                <i class="fa fa-address-card" aria-hidden="true"></i>
+                <span>Register</span>
+              </a>
+            </div>
+          @endauth
+        @endif
       </div>
-      <div class="row">
-
-    
-        
-       
-        <div class="col-md-10 ">
-          <div class="box">
-            
-              <div class="div_center">
-                <img widt="400" src="/products/{{$data->image}}" alt="">
-              </div>
-              <div class="detail-box">
-                <h6>{{$data->title}}</h6>
-                <h6>Price
-                  <span>
-                  $ {{$data->price}}
-                  </span>
-                </h6>
-              </div>
-
-              <div class="detail-box">
-                <h6>Category : {{$data->category}}</h6>
-                <h6>Available Quantity
-                  <span>
-                  {{$data->quantity}}
-                  </span>
-                </h6>
-              </div>
-
-              <div class="detail-box">
-                
-                  <p>{{$data->description}}</p>
-                
-              </div>
-
-              <div class="detail-box">
-                
-              <a class="btn btn-primary" href="{{url('add_cart',$data->id)}}">Add to Cart</a>
-                
-              </div>
-
-              <div class="new">
-                <span>
-                  New
-                </span>
-              </div>
-            
-              
-          </div>
-        </div>
-
-        
-
-        
-     
-      </div>
-       
     </div>
-  </section>
-
-  <!-- product details end -->
-
-
-
-
-
-
-
-
-
-   
-
-  <!-- info section -->
-  @include ('home.footer')
-  
-
-</body>
-
-</html>
+  </nav>
+</header>
