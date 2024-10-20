@@ -4,7 +4,7 @@
 <head>
   @include ('home.css')
 </head>
-
+<!---Bagian Contact saat contact ditekan dinavbar-->
 <body>
   <div class="hero_area">
     <!-- header section strats -->
@@ -29,21 +29,22 @@
           </div>
         </div>
         <div class="col-md-6 col-lg-5 px-0">
-          <form action="#">
+          <form action="{{url('send_message')}}" method="Post">
+            @csrf
             <div>
-              <input type="text" placeholder="Name" />
+              <input type="text" placeholder="Name" name="name" required/>
             </div>
             <div>
-              <input type="email" placeholder="Email" />
+              <input type="email" placeholder="Email" name="email" required />
             </div>
             <div>
-              <input type="text" placeholder="Phone" />
+              <input type="text" placeholder="Phone" name="phone" required/>
             </div>
             <div>
-              <input type="text" class="message-box" placeholder="Message" />
+              <input type="text" class="message-box" placeholder="Message" name="message" required/>
             </div>
             <div class="d-flex ">
-              <button>
+              <button type="submit">
                 SEND
               </button>
             </div>

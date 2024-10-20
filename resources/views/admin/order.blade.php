@@ -40,8 +40,11 @@
                 <h3>All Orders</h3>
                 <br>
                 <br>
-                <h3>Print Report: 
-                    <a class="btn btn-secondary" href="{{url('print_report')}}">Print PDF </a>
+                <h3>Print Report (PDF):  
+                    <a class="btn btn-secondary" href="{{url('print_report')}}"><i class="fa fa-download"></i> Print PDF </a>
+                </h3>
+                <h3>Print Report (Excel): 
+                    <a class="btn btn-secondary" href="{{url('order_export')}}"><i class="fa fa-download"></i> Print Excel </a>
                 </h3>
             <div class="table_center">
             <table>

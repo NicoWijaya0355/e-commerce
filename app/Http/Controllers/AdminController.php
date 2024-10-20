@@ -6,8 +6,16 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Order;
-
+use App\Models\Audit;
+use App\Models\Message;
+use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Exports\OrdersExport;
+use App\Imports\ProductsImport;
+use App\Exports\ProductsExport;
+use App\Notifications\SendEmailNotification;
+use App\Charts\MonthlyOrdersChart;
+use Notification;
 class AdminController extends Controller
 {
     public function view_category(){
@@ -198,5 +206,82 @@ class AdminController extends Controller
 
     }
 
+    public function export() 
+    {
+        return Excel::download(new OrdersExport, 'order.xlsx');
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,csv,xls',
+        ]);
+
+        Excel::import(new ProductsImport, $request->file('file'));
+        toastr()->timeOut(10000)->closeButton()->success('Product Excel Import Successfully');
+        return redirect()->back();
+    }
+
+    public function product_export()
+    {
+        return Excel::download(new ProductsExport, 'products.xlsx'); // Mengunduh file Excel
+    }
+
+    public function Audit()
+    {
+        $audit= Audit::all();
+        return view('admin.audit',compact('audit'));
+    }
+
+      
+        public function chart()
+        {
+            // Get data for the chart
+            // Get data for the chart, grouping by month and year
+            $orders = Order::selectRaw('DATE_FORMAT(created_at, "%m") as month, COUNT(*) as count')
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('count', 'month');
+
+                // Prepare an array for all months with 0 as default
+                $allMonths = array_fill(1, 12, 0);
+
+                // Merge the order counts into the allMonths array
+                foreach ($orders as $month => $count) {
+                $allMonths[(int)$month] = $count;
+                }
+
+                return view('admin.chart', compact('allMonths'));
+        }
+
+        public function message(){
+            $message = Message::all();
+            return view('admin.message',compact('message'));
+        }
+
+        public function response($id){
+            $message = Message::find($id);  
+            return view('admin.response',compact('message'));
+        }
+
+        public function send_response(Request $request,$id){
+            $data = Message::find($id);
+
+            $details=[
+                'greeting' => $request->greeting,
+                'body' =>$request->body,
+                'action_text' => $request->action_text,
+                'action_url' => 'https://wa.me/628977164040',
+                'endline' => $request->endline,
+
+            ];
+
+            Notification::send($data, new SendEmailNotification($details));
+            // ke app\notification
+            toastr()->timeOut(10000)->closeButton()->success('Mail Send Successfully');
+            $message=Message::all();
+            return view('admin.message',compact('message'));
+        }
+    
 
 }

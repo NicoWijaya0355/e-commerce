@@ -7,7 +7,8 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;  
 use App\Models\Cart;  
-use App\Models\Order;  
+use App\Models\Order;
+use App\Models\Message;    
 use Session;
 use Stripe;
 class HomeController extends Controller
@@ -18,7 +19,34 @@ class HomeController extends Controller
         $product = Product::all()->count();
         $order = Order::all()->count();
         $delivered= Order::where('status','Delivered')->count();
-        return view('admin.index',compact('user','product','order','delivered'));
+        $orders = Order::selectRaw('DATE_FORMAT(created_at, "%m") as month, COUNT(*) as count')
+        ->groupBy('month')
+        ->orderBy('month')
+        ->pluck('count', 'month');
+
+         // Prepare an array for all months with 0 as default
+         $allMonths = array_fill(1, 12, 0);
+
+         // Merge the order counts into the allMonths array
+         foreach ($orders as $month => $count) {
+         $allMonths[(int)$month] = $count;
+         }
+
+        $monthlyRevenue = Order::selectRaw('DATE_FORMAT(orders.created_at, "%m") as month, SUM(products.price) as total_revenue')
+        ->join('products', 'orders.product_id', '=', 'products.id')
+        ->groupBy('month')
+        ->orderBy('month')
+        ->pluck('total_revenue', 'month');
+ 
+        // Prepare an array for all months with 0 as default
+        $allMonthsRevenue = array_fill(1, 12, 0);
+    
+        // Merge the revenue data into the allMonthsRevenue array
+        foreach ($monthlyRevenue as $month => $revenue) {
+            $allMonthsRevenue[(int)$month] = $revenue;
+        }
+         
+        return view('admin.index',compact('user','product','order','delivered','allMonthsRevenue','allMonths'));
     }
 
     public function home(){
@@ -95,27 +123,46 @@ class HomeController extends Controller
     }
 
     public function mycart(){
-        if(Auth::id()){
-            $user= Auth::user();
-            $userid = $user->id;
-            $count = Cart ::where('user_id',$userid)->count();
-            $cart =Cart::where('user_id',$userid)->get();
-            $product= Product::all();
-        }
-        foreach($cart as $data){
-            foreach($product as $products){
-                if($products->quantity == 0){
-                    $data->delete();
-                    $cart =Cart::where('user_id',$userid)->get();
+    {
+            if (Auth::check()) {
+                $user = Auth::user();
+                $userid = $user->id;
+        
+                // Retrieve the user's cart items
+                $cart = Cart::where('user_id', $userid)->get();
+                $count = $cart->count(); // Count of items in the cart
+        
+                // Get product IDs from the cart
+                $productIds = $cart->pluck('product_id')->toArray();
+                
+                // Fetch products that are in the cart
+                $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+        
+                // Collect IDs of cart items to delete
+                $idsToDelete = [];
+        
+                foreach ($cart as $data) {
+                    // Check if the product exists and its quantity is 0
+                    if (isset($products[$data->product_id]) && $products[$data->product_id]->quantity == 0) {
+                        $idsToDelete[] = $data->id; // Collect ID for deletion
+                    }
                 }
-
+        
+                // Delete collected cart items
+                if (!empty($idsToDelete)) {
+                    Cart::destroy($idsToDelete);
+                }
+        
+                // Refresh cart after deletions
+                $cart = Cart::where('user_id', $userid)->get();
+                $count = $cart->count(); // Update count after deletion
+        
+                return view('home.mycart', compact('count', 'cart'));
             }
-
-            
-
-            
+        
+            return redirect()->back()->with('error', 'You need to be logged in to view your cart.');
         }
-        return view('home.mycart',compact('count','cart'));
+        
     }
 
     public function delete_cart($id){
@@ -198,7 +245,7 @@ class HomeController extends Controller
     public function myorders(){
 
         $user=Auth::user()->id;
-        $count= Order::where('user_id',$user)->get()->count();
+        $count= Cart::where('user_id',$user)->get()->count();
         $order= Order::where('user_id',$user)->get();
         return view('home.order',compact('count','order'));
     }
@@ -247,7 +294,8 @@ class HomeController extends Controller
             $order->user_id=$userid;
             $order->payment_status="paid";
             $order->product_id=$carts->product_id;
-
+            $product=Product::find($carts->product_id);
+            $product->quantity=$product->quantity-1;
             $order->save();
 
             
@@ -257,6 +305,19 @@ class HomeController extends Controller
         foreach($cart_remove as $remove){
             $data= Cart::find($remove->id);
             $data->delete();
+        }
+        $cartCheck=Cart::all();
+        $productCheck=Product::all();
+        foreach($cartCheck as $data){
+          foreach($productCheck as $products){
+
+            if($products->quantity==0){
+                $remove=Cart::where('product_id',$products->id);
+                $remove->delete();
+            }
+
+          }
+                     
         }
 
         toastr()->timeOut(10000)->closeButton()->success('Product Ordered Successfully');
@@ -323,4 +384,20 @@ class HomeController extends Controller
         
         return view('home.contact',compact('count'));
     }
+
+    public function send_message(Request $request){
+        $message = new Message;
+        $message->name=$request->name;
+        $message->email=$request->email;
+        $message->phone=$request->phone;
+        $message->message=$request->message;
+
+        toastr()->timeOut(10000)->closeButton()->success('Message Send Successfully, Wait the response in your Gmail');
+        $message->save();
+
+        return redirect()->back();
+
+
+    }
+
 }

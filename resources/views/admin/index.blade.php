@@ -13,6 +13,7 @@
           <div class="container-fluid">
 
             @include ('admin.body')
+            @include('admin.chart')
 
           </div>
       </div>

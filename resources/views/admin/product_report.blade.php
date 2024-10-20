@@ -49,7 +49,7 @@
 
           
             <h1 style="color:black"> All Products</h1>
-        
+           
             <div class="div_deg">
                 <table class="table_deg">
                     <tr>

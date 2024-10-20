@@ -86,8 +86,30 @@ route::get('print_report/',[AdminController::class,'print_report'])
 route::get('print_product/',[AdminController::class,'print_product'])
 ->middleware(['auth', 'admin']);
 
+Route::get('order_export', [AdminController::class, 'export'])
+->middleware(['auth', 'admin']);
+Route::get('products_export', [AdminController::class, 'product_export'])
+->middleware(['auth', 'admin']);
+Route::post('products_import', [AdminController::class, 'import'])
+->middleware(['auth', 'admin']);
+Route::get('audit', [AdminController::class, 'audit'])
+->middleware(['auth', 'admin']);
+Route::get('/charts', [AdminController::class, 'chart'])
+->middleware(['auth', 'admin']);
+
+Route::get('/message', [AdminController::class, 'message'])
+->middleware(['auth', 'admin']);
+
+Route::get('response/{id}', [AdminController::class, 'response'])
+->middleware(['auth', 'admin']);
+
+
+Route::post('send_response/{id}', [AdminController::class, 'send_response'])
+->middleware(['auth', 'admin']);
+
 route::get('shop',[HomeController::class,'shop']);
 route::get('why',[HomeController::class,'why']);
 
 route::get('testimonial',[HomeController::class,'testimonial']);
 route::get('contact',[HomeController::class,'contact']);
+route::post('send_message',[HomeController::class,'send_message']);

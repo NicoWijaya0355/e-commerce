@@ -19,6 +19,7 @@
 
         th{
             background-color: skyblue;
+            text-align: center;
             color: white;
             font-size: 19px;
             font-weight: bold;
@@ -56,8 +57,21 @@
                 <input type="submit" class="btn btn-success" value="search">
             </form>
      
+            <br>
+            <form action="{{ url('products_import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+  
+                <input type="file" name="file" class="form-control">
+
+                <br>
+                <button class="btn btn-success"><i class="fa fa-file"></i> Import Excel Product Data</button>
+            </form>
+            <br>
             <h3>Print Product: 
                     <a class="btn btn-secondary" href="{{url('print_product')}}">Print PDF </a>
+            </h3>
+            <h3>Print Product: 
+                    <a class="btn btn-secondary" href="{{url('products_export')}}">Print Excel </a>
             </h3>
             <div class="div_deg">
                 <table class="table_deg">
